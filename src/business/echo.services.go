@@ -31,6 +31,10 @@ func processPostMethod(r *http.Request, w http.ResponseWriter) {
 	}
 	var obj datatypes.EchoRequest
 	err = json.Unmarshal(bytes, &obj)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	response := dataaccess.Add(obj.Message)
 
 	bytesResponse, err := json.Marshal(response)
