@@ -1,7 +1,6 @@
 package datatypes
 
 type EchoResponse struct {
-	OriginalMessage string
-	FinalMessage    string
-	Id              int32
+	Message string
+	Id      int32
 }
