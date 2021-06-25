@@ -14,11 +14,7 @@ import (
 func HandleEcho(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		failedGet := processGetMethod(r, w)
-		if failedGet {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		processGetMethod(r, w)
 	case http.MethodPost:
 		processPostMethod(r, w)
 	default:
@@ -45,14 +41,14 @@ func processPostMethod(r *http.Request, w http.ResponseWriter) {
 	w.Write(bytesResponse)
 }
 
-func processGetMethod(r *http.Request, w http.ResponseWriter) bool {
+func processGetMethod(r *http.Request, w http.ResponseWriter) {
 	path := r.URL.Path
 	segments := strings.Split(path, "/")
 
 	println("Segments", segments)
 	if len(segments) != 3 {
 		w.WriteHeader(http.StatusBadRequest)
-		return true
+		return
 	}
 	selectedSegment := segments[2]
 	println("segments ok!, selected value is :", selectedSegment)
@@ -61,23 +57,26 @@ func processGetMethod(r *http.Request, w http.ResponseWriter) bool {
 	if err != nil {
 		println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		return true
+		return
 	}
 
+	msg := dataaccess.Find(int32(id))
+	if msg == "" {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	response := datatypes.EchoResponse{
 		Id:      int32(id),
-		Message: dataaccess.Find(int32(id)),
+		Message: msg,
 	}
 
 	data, e := json.Marshal(&response)
 	if e != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		return true
+		return
 	} else {
 		println("Sending Response..	")
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(data)
-
 	}
-	return false
 }
