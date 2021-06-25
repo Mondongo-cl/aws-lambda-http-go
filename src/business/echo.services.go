@@ -35,7 +35,11 @@ func processPostMethod(r *http.Request, w http.ResponseWriter) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	response := dataaccess.Add(obj.Message)
+	response, err := dataaccess.Add(obj.Message)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	bytesResponse, err := json.Marshal(response)
 	if err != nil {
@@ -64,14 +68,15 @@ func processGetMethod(r *http.Request, w http.ResponseWriter) {
 		return
 	}
 
-	msg := dataaccess.Find(int32(id))
-	if msg == "" {
+	msg, err := dataaccess.Find(int32(id))
+	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(err.Error()))
 		return
 	}
 	response := datatypes.EchoResponse{
 		Id:      int32(id),
-		Message: msg,
+		Message: *msg,
 	}
 
 	data, e := json.Marshal(&response)
