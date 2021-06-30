@@ -9,6 +9,16 @@ var (
 	next int32 = 1
 )
 
+func GetAll() ([]MessageRow, error) {
+	var slice []MessageRow
+	for _, v := range data {
+		// println("Append ... m: ", v.Message, ", id: ", v.Id)
+		slice = append(slice, *v)
+	}
+	// println("slice final len ", len(slice))
+	return slice, nil
+}
+
 func Add(message string) (*MessageRow, error) {
 	next++
 	data[next] = &MessageRow{Id: int32(next), Message: message}

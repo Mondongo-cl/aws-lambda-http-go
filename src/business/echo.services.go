@@ -52,40 +52,91 @@ func processPostMethod(r *http.Request, w http.ResponseWriter) {
 func processGetMethod(r *http.Request, w http.ResponseWriter) {
 	path := r.URL.Path
 	segments := strings.Split(path, "/")
-
-	println("Segments", segments)
-	if len(segments) != 3 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	selectedSegment := segments[2]
-	println("segments ok!, selected value is :", selectedSegment)
-	id, err := strconv.Atoi(selectedSegment)
-	println("conversion result is : ", id)
-	if err != nil {
-		println(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	msg, err := dataaccess.Find(int32(id))
-	if err != nil {
+	if len(segments) > 3 {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(err.Error()))
 		return
 	}
+
+	if len(segments) == 3 {
+
+		selectedSegment := segments[2]
+		id, err := strconv.Atoi(selectedSegment)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		msg, err := dataaccess.Find(int32(id))
+		if err == nil {
+			response := CreateResponseItem(id, msg)
+			_ = WriteResponseItem(response, w)
+
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+	} else {
+		// println("Get All Op...")
+		rowList, err := dataaccess.GetAll()
+		if err != nil {
+			// println("Error on GetAll")
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte(err.Error()))
+			return
+
+		} else {
+			// println("Get All Success, found ", len(rowList))
+			response := CreateResponseItemList(rowList)
+			_ = WriteReponseItemList(response, w)
+		}
+	}
+}
+
+func WriteResponseItem(response datatypes.EchoResponse, w http.ResponseWriter) bool {
+	data, e := json.Marshal(&response)
+	if e != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return true
+	} else {
+		// println("Sending Response..	")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(data)
+	}
+	return false
+}
+
+func WriteReponseItemList(response *[]*datatypes.EchoResponse, w http.ResponseWriter) bool {
+	// println(response, binary.Size(response))
+	data, e := json.Marshal(response)
+	if e != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return true
+	} else {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(data)
+	}
+	return false
+}
+
+func CreateResponseItemList(rowList []dataaccess.MessageRow) *[]*datatypes.EchoResponse {
+	var response []*datatypes.EchoResponse
+	for _, v := range rowList {
+		// println("Creating Element ", k, " with value ", v.Id, " ", v.Message)
+		i := datatypes.EchoResponse{
+			Message: v.Message,
+			Id:      v.Id,
+		}
+		// println("Adding Element ", k, " with value ", v.Id, " ", v.Message)
+		response = append(response, &i)
+		// ("reponse len [inside]::", len(response))
+	}
+	// println("reponse len ::", len(response))
+	return &response
+}
+
+func CreateResponseItem(id int, msg *string) datatypes.EchoResponse {
 	response := datatypes.EchoResponse{
 		Id:      int32(id),
 		Message: *msg,
 	}
-
-	data, e := json.Marshal(&response)
-	if e != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	} else {
-		println("Sending Response..	")
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
-	}
+	return response
 }
