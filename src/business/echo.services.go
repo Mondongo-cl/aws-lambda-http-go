@@ -67,8 +67,12 @@ func processGetMethod(r *http.Request, w http.ResponseWriter) {
 		}
 		msg, err := dataaccess.Find(int32(id))
 		if err == nil {
-			response := CreateResponseItem(id, msg)
-			_ = WriteResponseItem(response, w)
+			response, err := CreateResponseItem(id, msg)
+			if err != nil {
+				_ = WriteResponseItem(response, w)
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
 
 		} else {
 			w.WriteHeader(http.StatusNotFound)
@@ -133,10 +137,10 @@ func CreateResponseItemList(rowList []dataaccess.MessageRow) *[]*datatypes.EchoR
 	return &response
 }
 
-func CreateResponseItem(id int, msg *string) datatypes.EchoResponse {
+func CreateResponseItem(id int, msg *string) (datatypes.EchoResponse, error) {
 	response := datatypes.EchoResponse{
 		Id:      int32(id),
 		Message: *msg,
 	}
-	return response
+	return response, nil
 }
