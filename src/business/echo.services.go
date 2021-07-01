@@ -79,16 +79,13 @@ func processGetMethod(r *http.Request, w http.ResponseWriter) {
 			return
 		}
 	} else {
-		// println("Get All Op...")
 		rowList, err := dataaccess.GetAll()
 		if err != nil {
-			// println("Error on GetAll")
 			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte(err.Error()))
 			return
 
 		} else {
-			// println("Get All Success, found ", len(rowList))
 			response := CreateResponseItemList(rowList)
 			_ = WriteReponseItemList(response, w)
 		}
@@ -101,7 +98,6 @@ func WriteResponseItem(response datatypes.EchoResponse, w http.ResponseWriter) b
 		w.WriteHeader(http.StatusInternalServerError)
 		return true
 	} else {
-		// println("Sending Response..	")
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(data)
 	}
@@ -109,7 +105,6 @@ func WriteResponseItem(response datatypes.EchoResponse, w http.ResponseWriter) b
 }
 
 func WriteReponseItemList(response *[]*datatypes.EchoResponse, w http.ResponseWriter) bool {
-	// println(response, binary.Size(response))
 	data, e := json.Marshal(response)
 	if e != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -124,16 +119,12 @@ func WriteReponseItemList(response *[]*datatypes.EchoResponse, w http.ResponseWr
 func CreateResponseItemList(rowList []dataaccess.MessageRow) *[]*datatypes.EchoResponse {
 	var response []*datatypes.EchoResponse
 	for _, v := range rowList {
-		// println("Creating Element ", k, " with value ", v.Id, " ", v.Message)
 		i := datatypes.EchoResponse{
 			Message: v.Message,
 			Id:      v.Id,
 		}
-		// println("Adding Element ", k, " with value ", v.Id, " ", v.Message)
 		response = append(response, &i)
-		// ("reponse len [inside]::", len(response))
 	}
-	// println("reponse len ::", len(response))
 	return &response
 }
 

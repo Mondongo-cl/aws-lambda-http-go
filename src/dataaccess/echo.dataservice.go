@@ -12,10 +12,8 @@ var (
 func GetAll() ([]MessageRow, error) {
 	var slice []MessageRow
 	for _, v := range data {
-		// println("Append ... m: ", v.Message, ", id: ", v.Id)
 		slice = append(slice, *v)
 	}
-	// println("slice final len ", len(slice))
 	return slice, nil
 }
 
