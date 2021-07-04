@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Mondongo-cl/http-rest-echo-go/middleware"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func start() {
