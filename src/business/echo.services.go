@@ -2,6 +2,7 @@ package business
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -35,18 +36,15 @@ func processPostMethod(r *http.Request, w http.ResponseWriter) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	response, err := dataaccess.Add(obj.Message)
+	affceted, err := dataaccess.Add(obj.Message)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	bytesResponse, err := json.Marshal(response)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(bytesResponse)
+	response := fmt.Sprintf("%d row(s) affected", affceted)
+	w.Write([]byte(response))
 }
 
 func processGetMethod(r *http.Request, w http.ResponseWriter) {
@@ -69,9 +67,9 @@ func processGetMethod(r *http.Request, w http.ResponseWriter) {
 		if err == nil {
 			response, err := CreateResponseItem(id, msg)
 			if err != nil {
-				_ = WriteResponseItem(response, w)
-			} else {
 				w.WriteHeader(http.StatusInternalServerError)
+			} else {
+				_ = WriteResponseItem(response, w)
 			}
 
 		} else {
