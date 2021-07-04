@@ -7,12 +7,10 @@ import (
 	_ "github.com/Mondongo-cl/http-rest-echo-go/datatypes"
 )
 
-const cnnStr string = "root:123456@tcp(localhost:3306)/testdb"
+const cnnStr string = "root:123456@tcp(mysql1:3306)/testdb"
 
 var (
 	mySQLConnection MySQLConnection = MySQLConnection{CnnStr: cnnStr}
-	data                            = map[int32]*MessageRow{1: {1, "Hard Coded"}}
-	next            int32           = 1
 )
 
 func GetAll() ([]MessageRow, error) {
