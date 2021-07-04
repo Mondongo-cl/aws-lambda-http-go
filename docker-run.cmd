@@ -1,1 +1,1 @@
- docker run -it http-rest-echo-go -p 5001:5001
+ docker run -it -p 5001:5001 http-rest-echo-go:latest
