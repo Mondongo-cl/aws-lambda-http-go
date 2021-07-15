@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/go:1 as builder
+FROM public.ecr.aws/lambda/provided:al2 as builder
 # install GIT
 WORKDIR /go/src/app
 RUN yum install -y git
@@ -12,7 +12,8 @@ RUN go build .
 
 
 # copy artifacts to a clean image
-FROM public.ecr.aws/lambda/go:1
+# FROM public.ecr.aws/lambda/go:1
+FROM public.ecr.aws/lambda/provided:al2
 LABEL Name=http-rest-echo-go Version=0.2
 COPY --from=builder /go/src/app/http-rest-echo-go/src/http-rest-echo-go ${LAMBDA_TASK_ROOT}
 CMD ["http-rest-echo-go"]
