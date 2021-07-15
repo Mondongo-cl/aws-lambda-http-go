@@ -9,9 +9,6 @@ import (
 
 const cnnStr string = "%s:%s@tcp(%s:%d)/%s"
 
-type SQLConnection interface {
-	Configure(Hostname *string, Port *int32, Username *string, Password *string, Database *string) error
-}
 type MySQLConnection struct {
 	Host     string
 	Port     int

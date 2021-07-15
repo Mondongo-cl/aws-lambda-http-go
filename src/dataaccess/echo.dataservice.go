@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 
-	_ "github.com/Mondongo-cl/http-rest-echo-go/datatypes"
 	"github.com/Mondongo-cl/http-rest-echo-go/settings"
 )
 
