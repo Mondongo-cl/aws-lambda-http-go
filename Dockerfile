@@ -15,7 +15,7 @@ RUN go install -v ./...
 FROM public.ecr.aws/lambda/go:1
 LABEL Name=http-rest-echo-go Version=0.2
 COPY --from=builder /go/src/app/http-rest-echo-go/src/http-* ${LAMBDA_TASK_ROOT}
-ENTRYPOINT [ "./http-rest-echo-go" ]
+CMD [ "./var/task/http-rest-echo-go" ]
 EXPOSE 5001
 
 ## to start container 
