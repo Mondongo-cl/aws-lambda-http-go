@@ -1,4 +1,4 @@
-# http-rest-echo-go
+# AWS Lambda http golang Function
 
 ## Build
 
