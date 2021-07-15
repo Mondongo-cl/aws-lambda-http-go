@@ -5,13 +5,14 @@ import (
 	"log"
 
 	_ "github.com/Mondongo-cl/http-rest-echo-go/datatypes"
+	"github.com/Mondongo-cl/http-rest-echo-go/settings"
 )
 
-const cnnStr string = "root:123456@tcp(mysql1:3306)/testdb"
+var mySQLConnection MySQLConnection = MySQLConnection{}
 
-var (
-	mySQLConnection MySQLConnection = MySQLConnection{CnnStr: cnnStr}
-)
+func Configure(settings settings.ConnectionSettings) {
+	mySQLConnection.Configure(&settings.Host, &settings.Port, &settings.Username, &settings.Password, &settings.Database)
+}
 
 func GetAll() ([]MessageRow, error) {
 	log.Println("Get All operation start")
