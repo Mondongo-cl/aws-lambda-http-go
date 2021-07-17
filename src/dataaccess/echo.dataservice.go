@@ -2,44 +2,43 @@ package dataaccess
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	_ "github.com/Mondongo-cl/http-rest-echo-go/datatypes"
 )
 
-const cnnStr string = "root:123456@tcp(mysql1:3306)/testdb"
-
 var (
-	mySQLConnection MySQLConnection = MySQLConnection{CnnStr: cnnStr}
+	mySQLConnection *MySQLConnection = &MySQLConnection{}
 )
 
-func GetAll() ([]MessageRow, error) {
-	log.Println("Get All operation start")
-	dbdata, err := mySQLConnection.Select("SELECT ID, Message FROM Messages")
-	if err != nil {
-		log.Fatal(err.Error())
-		log.Fatal("selects statement failed")
+func Configure(username *string, password *string, hostname *string, port *int, databasename *string) {
+	const cnnStr string = "%s:%s@tcp(%s:%d)/%s"
+	mySQLConnection.CnnStr = fmt.Sprintf(cnnStr, *username, *password, *hostname, *port, *databasename)
+}
 
+func GetAll() ([]MessageRow, error) {
+
+	dbdata, err := mySQLConnection.Select("SELECT ID, Message FROM Messages")
+
+	if err != nil {
+		log.Panic("selects statement failed " + err.Error())
 	}
+
 	var slice []MessageRow
+
 	for dbdata.Next() {
-		var messageValue string
-		var id int
-		dbdata.Scan(&id, &messageValue)
-		item := MessageRow{Id: int32(id), Message: messageValue}
-		slice = append(slice, item)
+		item := &MessageRow{}
+		dbdata.Scan(&item.Id, &item.Message)
+		slice = append(slice, *item)
 	}
-	log.Printf("dbData value is %v \n", dbdata)
 	return slice, nil
 }
 
 func Add(message string) (int64, error) {
-	log.Println("Add operation start")
-
 	result, err := mySQLConnection.Execute("INSERT INTO Messages (Message) VALUES(?);", message)
 	if err != nil {
-		log.Fatal(err.Error())
-		return int64(0), err
+		log.Panic(err.Error())
 	}
 	if result != nil {
 		if affected, err := result.RowsAffected(); err == nil {
@@ -53,12 +52,9 @@ func Add(message string) (int64, error) {
 }
 
 func Remove(id int32) (int64, error) {
-	log.Println("Add operation start")
-
 	result, err := mySQLConnection.Execute("DELETE FROM Messages WHERE ID = ?;", id)
 	if err != nil {
-		log.Fatal(err.Error())
-		return int64(0), err
+		log.Panic(err.Error())
 	}
 	if result != nil {
 		if affected, err := result.RowsAffected(); err == nil {
@@ -72,9 +68,10 @@ func Remove(id int32) (int64, error) {
 }
 
 func Find(id int32) (*string, error) {
-	log.Println("Find operation start")
-	dbdata := mySQLConnection.SelectOne("SELECT ID, Message FROM Messages WHERE ID = ?", id)
-
+	dbdata, err := mySQLConnection.SelectOne("SELECT ID, Message FROM Messages WHERE ID = ?", id)
+	if err != nil {
+		log.Panic(err.Error())
+	}
 	if dbdata != nil {
 		var messageValue string
 		var id int
@@ -84,6 +81,5 @@ func Find(id int32) (*string, error) {
 		}
 		return &messageValue, nil
 	}
-	log.Printf("dbData value is %v \n", dbdata)
 	return nil, errors.New("no data found")
 }

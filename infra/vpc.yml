@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  http go service vpc
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: '10.0.0.0/16'
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+    
+  Subnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [0,!GetAZs '']
+      VpcId: !Ref VPC
+      CidrBlock: !Sub '10.0.0.0/20'
+      MapPublicIpOnLaunch: 'true' 
+
+  Subnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [1,!GetAZs '']
+      VpcId: !Ref VPC
+      CidrBlock: !Sub '10.0.32.0/20'
+      MapPublicIpOnLaunch: 'true' 
+    
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+  
+  Gateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref VPC
+  
+  SubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref Subnet1
+  
+  SubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref Subnet2
+  
+  InternetRoute:
+    Type: AWS::EC2::Route
+    DependsOn: Gateway
+    Properties: 
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref RouteTable
+
+  ECSTaskExecutionRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        AssumeRolePolicyDocument:
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+        Path: /
+
+
+        
+
+
+Outputs:        
+
+  VPC:
+    Description: VPC
+    Value: !Ref VPC
+    Export: 
+      Name: !Sub "${AWS::StackName}-VPCID"
+
+  Sunnet1:
+    Description: Subnet1
+    Value: !Ref Subnet1
+    Export: 
+      Name: !Sub "${AWS::StackName}-Subnet1"
+
+  Subnet2:
+    Description: Subnet2
+    Value: !Ref Subnet2
+    Export: 
+      Name: !Sub "${AWS::StackName}-Subnet2"

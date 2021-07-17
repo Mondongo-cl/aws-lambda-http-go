@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Application Cluster
+
+Resources:
+
+
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: http-fargate-go
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: go-service
+      Subnets:
+       - !ImportValue 'http-go-vpn-Subnet1'
+       - !ImportValue 'http-go-vpn-Subnet2'
+      SecurityGroup:
+        - !Ref  LoadBalancerSG
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalanceArn: !Ref LoadBalancer
+      Protocol: HTTP
+      Port: 80
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref DefaultTargetGroup
+
+  LoadBalancerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SecurityGroup
+      VpcId: !ImportValue 'http-go-vpn-VPCID'
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  DefaultTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: default
+      VpcId: !ImportValue 'http-go-vpn-VPCID'
+      Protocol: 'HTTP'
+      Port: 80
+
+  CloudWatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: 'GO-API-SERVICE'
+      RetentionInDays: 1
+
+  ContainerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SecurityGroup
+      VpcId: !ImportValue 'http-go-vpn-VPCID'
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          SourceSecurityGroupId: !Ref 'LoadBalancerSG'
+Outputs:
+
+  Cluster:
+    Description: Cluster
+    Value: !Ref ECSCluster
+    Export: 
+      Name: 'ECSCluster'
+
+  Listener:
+    Description: LoadBalancerListener
+    Value: !Ref LoadBalancerListener
+    Export: 
+      Name: 'LoadBalancerListener'
+
+  ContainerSecurityGroup:
+    Description: ContainerSecurityGroup
+    Value: !Ref ContainerSecurityGroup
+    Export: 
+      Name: 'ContainerSecurityGroup'
+
+  LoadBalanceDNS:
+    Description: Cluster
+    Value: !GetAtt LoadBalancer.DNSName
+    Export: 
+      Name: 'DNS'

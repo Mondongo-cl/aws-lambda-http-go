@@ -8,6 +8,11 @@ import (
 )
 
 func RegisterRoutes() {
+
+	// TODO: ADD Healthy check routes
+	// get:/
+	// get:/stat
+
 	http.Handle("/echo", handlers.CorsHandler(business.HandleEcho))
 	http.Handle("/echo/", handlers.CorsHandler(business.HandleEcho))
 }

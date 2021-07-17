@@ -20,18 +20,18 @@ func (c *MySQLConnection) Select(query string, params ...interface{}) (*sql.Rows
 	}
 }
 
-func (c *MySQLConnection) SelectOne(query string, params ...interface{}) *sql.Row {
+func (c *MySQLConnection) SelectOne(query string, params ...interface{}) (*sql.Row, error) {
 	cnn, err := c.open()
 
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	defer cnn.Close()
 	if params != nil {
-		return cnn.QueryRow(query, params...)
+		return cnn.QueryRow(query, params...), nil
 	} else {
-		return cnn.QueryRow(query)
+		return cnn.QueryRow(query), nil
 	}
 }
 

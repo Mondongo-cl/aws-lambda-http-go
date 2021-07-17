@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: HTTP Echo go Service AIM to Fargate running
+Resources:
+ 
+
+Outputs:
+########## ERROR TODO
+#  MyPolicy:
+#    Type: 'AWS::IAM::Policy'
+#    Properties:
+#      PolicyName: policy1
+#      PolicyDocument:
+#        Version: '2012-10-17'
+#        Statement:
+#        - Effect: Allow
+#          Action:
+#            - 'ecr:GetAutorizationToken'
+#            - 'ecr:BatchCheckLayerAvailability'
+#            - 'ecr:GetDownloadUrlForLayer'
+#            - 'ecr:GetAutorizationToken'
+#            - 'ecr:BatchGetImage'
+#            - 'logs:CreateLogStream'
+#            - 'logs:PutLogEvents'
+#          Recource: '*'
+#      Roles:
+#      - !Ref ECSTaskExecutionRole
+
+  ESCTaskExecutionRole:
+    Description: ESC Task Execution Role
+    Value: !GetAtt 'ECSTaskExecutionRole.Arn'
+    Export:
+      Name: 'ECSTaskExecutionRole'
+      
+Metadata:
+  'AWS::CloudFormation::Designer':
+    969f3fbc-6fa0-40db-9346-d75fa3798d64:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 330
+        'y': 110
+      z: 1
+      embeds: []
