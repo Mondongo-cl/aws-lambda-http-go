@@ -12,28 +12,18 @@ Resources:
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: go-service
+      Name: LoadBalancer
       Subnets:
-       - !ImportValue 'http-go-vpn-Subnet1'
-       - !ImportValue 'http-go-vpn-Subnet2'
-      SecurityGroup:
+       - !ImportValue 'Subnet1'
+       - !ImportValue 'Subnet2'
+      SecurityGroups:
         - !Ref  LoadBalancerSG
-
-  LoadBalancerListener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties:
-      LoadBalanceArn: !Ref LoadBalancer
-      Protocol: HTTP
-      Port: 80
-      DefaultActions:
-        - Type: forward
-          TargetGroupArn: !Ref DefaultTargetGroup
 
   LoadBalancerSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: SecurityGroup
-      VpcId: !ImportValue 'http-go-vpn-VPCID'
+      VpcId: !ImportValue 'VPCID'
       SecurityGroupIngress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
@@ -42,7 +32,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Name: default
-      VpcId: !ImportValue 'http-go-vpn-VPCID'
+      VpcId: !ImportValue 'VPCID'
       Protocol: 'HTTP'
       Port: 80
 
@@ -56,10 +46,24 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: SecurityGroup
-      VpcId: !ImportValue 'http-go-vpn-VPCID'
+      VpcId: !ImportValue 'VPCID'
       SecurityGroupIngress:
         - IpProtocol: -1
           SourceSecurityGroupId: !Ref 'LoadBalancerSG'
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn: LoadBalancer
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Protocol: HTTP
+      Port: 80
+      DefaultActions:
+        - Order: 2
+          Type: forward
+          TargetGroupArn: !Ref DefaultTargetGroup
+
+
 Outputs:
 
   Cluster:

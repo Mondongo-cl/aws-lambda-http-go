@@ -13,52 +13,42 @@ Resources:
       RequiresCompatibilities:
         - FARGATE
       ExecutionRoleArn: !ImportValue ECSTaskExecutionRole
-      ContainerDefinition:
+      ContainerDefinitions:
         - Name: echo-service
           Image: 638549550445.dkr.ecr.us-east-2.amazonaws.com/http-echo-service:latest
+          
           PortMappings:
             - ContainerPort: 8000
               Protocol: tcp
           LogConfiguration:
             LogDriver: awslogs
             Options:
-              awslogs-group: apis
-              awslogs-region: AWS::REGION
+              awslogs-group: GO-API-SERVICE
+              awslogs-region: us-east-2
               awslogs-stream-prefix: http-go
-
-  MyFargateService:
-    Type: AWS::ECS::Service
-    DependsOn: ListenerRule
-    Properties:
-      TaskDefinition: !Ref MyTask
-      Cluster: !ImportValue ECSCluster
-      LaunchType: FARGATE
-      DesireCounts: 2
-      DeploymentConfiguration:
-        MaximunPercent: 200
-        MinimunPercent: 70
-      NetworlConfiguration:
-        AwsvpcConfiguration:
-          AssingPublicIp: ENABLED
-          Subnets:
-            - !ImportValue Subnet1
-            - !ImportValue Subnet2
-          SecurityGroup:
-            - !ImportValue ContainerSecurityGroup
-      LoadBalancers:
-        - ContainerName: echo-service
-          ContainerPort: 8000
-          TargetGroupArn: !Ref TargetGroup
+          Environment:
+            - Name: dbusername
+              Value: root
+            - Name: dbpassword
+              Value: acemq3306
+            - Name: dbhostname
+              Value: www.cyberpojos.com
+            - Name: dbport
+              Value: 3306
+            - Name: httplistenerport
+              Value: 8000
+            - Name: databasename
+              Value: testdb
 
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      VpcId: !ImportValue VPC
+      VpcId: !ImportValue VPCID
       Port: 80
       Protocol: HTTP
       Matcher:
         HttpCode: 200-299
-      HealthCheckIntervalSeconds: 10
+      HealthCheckIntervalSeconds: 20
       HealthCheckPath: /echo
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 10
@@ -68,15 +58,40 @@ Resources:
   ListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
-      ListenerArn: !ImportValue Listener
+      ListenerArn: !ImportValue LoadBalancerListener
       Priority: 2
-      Condition:
+      Conditions:
         - Field: path-pattern
           Values:
             - /*
       Actions:
         - TargetGroupArn: !Ref TargetGroup
           Type: forward
+
+  MyFargateService:
+    Type: AWS::ECS::Service
+    Properties:
+      TaskDefinition: !Ref MyTask
+      Cluster: !ImportValue ECSCluster
+      LaunchType: FARGATE
+      DesiredCount: 6
+      DeploymentConfiguration:
+        MaximumPercent: 100
+        MinimumHealthyPercent: 50
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !ImportValue Subnet1
+            - !ImportValue Subnet2
+          SecurityGroups:
+            - !ImportValue ContainerSecurityGroup
+      LoadBalancers:
+        - ContainerName: echo-service
+          ContainerPort: 8000
+          TargetGroupArn: !Ref TargetGroup
+
+
 
 Outputs:
 

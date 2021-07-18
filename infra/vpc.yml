@@ -62,21 +62,40 @@ Resources:
       RouteTableId: !Ref RouteTable
 
   ECSTaskExecutionRole:
-      Type: 'AWS::IAM::Role'
-      Properties:
-        AssumeRolePolicyDocument:
-          Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - ecs-tasks.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-        Path: /
+    Type: 'AWS::IAM::Role'
+    Version: '2012-10-17'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - ecs-tasks.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      Path: /
 
 
-        
-
+  TaskExecutionPolicy:
+    Type: 'AWS::IAM::Policy'
+    Version: '2012-10-17'
+    Properties:
+      PolicyName: AmazonECSTaskExecutionRolePolicy
+      Roles:
+        - !Ref ECSTaskExecutionRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Sid: Policy0
+          Action:
+            - 'ecr:GetAuthorizationToken'
+            - 'ecr:BatchCheckLayerAvailability'
+            - 'ecr:GetDownloadUrlForLayer'
+            - 'ecr:BatchGetImage'
+            - 'logs:CreateLogStream'
+            - 'logs:PutLogEvents'
+          Resource: '*'
 
 Outputs:        
 
@@ -84,16 +103,22 @@ Outputs:
     Description: VPC
     Value: !Ref VPC
     Export: 
-      Name: !Sub "${AWS::StackName}-VPCID"
+      Name: !Sub "VPCID"
 
   Sunnet1:
     Description: Subnet1
     Value: !Ref Subnet1
     Export: 
-      Name: !Sub "${AWS::StackName}-Subnet1"
+      Name: !Sub "Subnet1"
 
   Subnet2:
     Description: Subnet2
     Value: !Ref Subnet2
     Export: 
-      Name: !Sub "${AWS::StackName}-Subnet2"
+      Name: !Sub "Subnet2"
+
+  ESCTaskExecutionRole:
+    Description: ESC Task Execution Role
+    Value: !GetAtt 'ECSTaskExecutionRole.Arn'
+    Export:
+      Name: 'ECSTaskExecutionRole'
