@@ -1,33 +1,36 @@
 package main
 
 import (
-	"context"
-	_ "fmt"
-	"log"
+	"flag"
+	"fmt"
+	"net/http"
 
-	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
-
+	"github.com/Mondongo-cl/http-rest-echo-go/dataaccess"
+	"github.com/Mondongo-cl/http-rest-echo-go/middleware"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func handleRequest(ctx context.Context, r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	log.Printf("processing BODY: %s verb: %s path: %s", r.Body, r.HTTPMethod, r.Path)
-	defer log.Printf("event id: %s has benn processed", r.RequestContext.RequestID)
-	switch r.HTTPMethod {
-	case "GET":
-		return events.APIGatewayProxyResponse{StatusCode: 200, Body: "{\"Method\":\"GET\"}"}, nil
-	case "POST":
-		return events.APIGatewayProxyResponse{StatusCode: 201, Body: "{\"Method\":\"POST\"}"}, nil
-	default:
-		return events.APIGatewayProxyResponse{StatusCode: 504, Body: "{\"Method\":\"OTHER\"}"}, nil
-	}
+func start(port *int) {
+	http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
 }
 
 func main() {
-	log.Println("starting hello world service...")
-	lambda.Start(handleRequest)
-	log.Println("stoping hello worls service...")
-	// middleware.RegisterRoutes()
-	// start()
+
+	username := flag.String("dbusername", "root", "database username")
+	password := flag.String("dbpassword", "123456", "database password")
+	hostname := flag.String("dbhostname", "localhost", "database hostname")
+	port := flag.Int("dbport", 3306, "database port number")
+	publicPort := flag.Int("httplistenerport", 0, "Http Listener port")
+	databasename := flag.String("databasename", "default", "database name")
+	flag.Parse()
+
+	if !flag.Parsed() || (*username == "" || *password == "" || *hostname == "" || *port == 0 || *databasename == "" || *publicPort == 0) {
+		fmt.Printf("Incorrect Parameters:\n============================\nUSAGE:\n================= ")
+		flag.PrintDefaults()
+		return
+	}
+	dataaccess.Configure(username, password, hostname, port, databasename)
+	println("starting hello world service...")
+	middleware.RegisterRoutes()
+	start(publicPort)
 }

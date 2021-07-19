@@ -8,6 +8,7 @@ import (
 )
 
 func RegisterRoutes() {
+
 	http.Handle("/echo", handlers.CorsHandler(business.HandleEcho))
 	http.Handle("/echo/", handlers.CorsHandler(business.HandleEcho))
 }

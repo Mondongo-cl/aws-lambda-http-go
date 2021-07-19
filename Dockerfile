@@ -1,29 +1,27 @@
 FROM public.ecr.aws/lambda/provided:al2 as builder
 # install GIT
 WORKDIR /go/src/app
-COPY . ./http-rest-echo-go/
-# RUN yum install -y git
 # RUN git clone https://github.com/Mondongo-cl/http-rest-echo-go.git
-RUN yum install -y golang
-
-RUN go env -w GOPROXY=direct
+COPY . ./http-rest-echo-go/
 WORKDIR /go/src/app/http-rest-echo-go/src
 RUN go build .
-# RUN go get -d -v ./...
-# RUN go install -v ./...
+RUN go get -v ./... 
+run go install -v .
+# final stage
+FROM alpine:latest
+LABEL Name=http-rest-echo-go Version=1.2
+RUN apk --no-cache add ca-certificates
+COPY --from=builder /go/src/app/http-rest-echo-go/src/http-rest-echo-go /usr/local/bin/
 
+ENV dbusername=root
+ENV dbpassword=123456
+ENV dbhostname=localhost
+ENV dbport=3306
+ENV httplistenerport=9000
+ENV databasename=testdb
+ENTRYPOINT ["sh","-c","http-rest-echo-go -databasename ${databasename} -dbusername ${dbusername} -dbpassword ${dbpassword} -dbhostname ${dbhostname} -dbport ${dbport} -httplistenerport ${httplistenerport}"]
 
-# copy artifacts to a clean image
-FROM public.ecr.aws/lambda/go:1
-# FROM public.ecr.aws/lambda/provided:al2
-LABEL Name=http-rest-echo-go Version=0.2
-ENV GOPROXY=direct
-ENV _LAMBDA_SERVER_PORT=5001
-ENV _HANDLER=http-rest-echo-go
-ENV AWS_LAMBDA_RUNTIME_API="go.1x"
-COPY --from=builder /go/src/app/http-rest-echo-go/src/http-rest-echo-go ${LAMBDA_TASK_ROOT}
-CMD [ "http-rest-echo-go"]
-EXPOSE 5001
+EXPOSE ${httplistenerport}
 
 ## to start container 
 ## docker run -d -p  5001:5001 http-rest-echo-go

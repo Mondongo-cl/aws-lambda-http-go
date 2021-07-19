@@ -1,0 +1,38 @@
+@startuml overview
+    !includeurl https://raw.githubusercontent.com/ebbypeter/Archimate-PlantUML/master/Archimate.puml
+
+Grouping(Internet, "Internet"){
+    archimate #Technology "AWS" as AWS1 <<technology-communication-network>>
+     Grouping(AWS, "AWS:AWS"){
+        archimate #Technology "VPC" as VPC1 <<technology-communication-network>>
+        Grouping(VPC, "AWS:VPC"){
+            archimate #Technology "Load Balance" as LBN1 <<technology-communication-path>>
+        Grouping(Zone1, "AWS:AvailabilityZone"){
+            archimate #Technology "Cluster Node" as NODE1 <<technology-node>>
+            archimate #Technology "Service Instance" as SVC1 <<technology-service>>
+            archimate #Technology "Service Instance" as SVC2 <<technology-service>>
+            archimate #Technology "Service Instance" as SVC3 <<technology-service>>
+        }
+        Grouping(Zone2, "AWS:AvailabilityZone"){
+            archimate #Technology "Cluster Node" as NODE2 <<technology-node>>
+            archimate #Technology "Service Instance" as SVC4 <<technology-service>>
+            archimate #Technology "Service Instance" as SVC5 <<technology-service>>
+            archimate #Technology "Service Instance" as SVC6 <<technology-service>>
+        }
+          
+        }
+    }
+}
+AWS1 -> VPC1
+VPC1 -> LBN1
+LBN1 --> NODE1
+LBN1 --> NODE2
+
+NODE1 --> SVC1
+NODE1 --> SVC2
+NODE1 --> SVC3
+
+NODE2 --> SVC4
+NODE2 --> SVC5
+NODE2 --> SVC6
+@enduml
