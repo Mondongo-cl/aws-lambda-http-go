@@ -1,0 +1,44 @@
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: CloudWatch stream log cluster
+
+Resources:
+
+  ElasticsearchDomain:
+    Type: AWS::Elasticsearch::Domain
+    Properties:
+      DomainName: 'http-go-log'
+      ElasticsearchVersion: '7.10'
+      ElasticsearchClusterConfig:
+        DedicatedMasterEnabled: true
+        InstanceCount: '2'
+        ZoneAwarenessEnabled: true
+        InstanceType: 't3.small.elasticsearch'
+        DedicatedMasterType: 't3.small.elasticsearch'
+        DedicatedMasterCount: '3'
+      EBSOptions:
+        EBSEnabled: true
+        Iops: '0'
+        VolumeSize: '20'
+        VolumeType: 'gp2'
+      AccessPolicies:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Principal:
+              AWS: !Join ['' , ['arn:aws:ec2:', !Ref AWS::Region ,':',!Ref AWS::AccountId,':security-group/', !ImportValue 'ContainerSecurityGroup' ]]
+            Action: '*'
+            Resource: !Join ['' , ['arn:aws:ecs:', !Ref AWS::Region ,':',!Ref AWS::AccountId,':cluster/', !ImportValue 'ECSCluster' ]]
+      LogPublishingOptions:
+        ES_APPLICATION_LOGS:
+            CloudWatchLogsLogGroupArn: !Join ['',['arn:aws:logs:', !Ref AWS::Region , ':' , !Ref AWS::AccountId ,':log-group:', !ImportValue LogWatchArn]]
+            Enabled: true
+        SEARCH_SLOW_LOGS:
+            CloudWatchLogsLogGroupArn: !Join ['',['arn:aws:logs:', !Ref AWS::Region , ':' , !Ref AWS::AccountId ,':log-group:', !ImportValue LogWatchArn]]
+            Enabled: true
+        INDEX_SLOW_LOGS:
+            CloudWatchLogsLogGroupArn: !Join ['',['arn:aws:logs:', !Ref AWS::Region , ':' , !Ref AWS::AccountId ,':log-group:', !ImportValue LogWatchArn]]
+            Enabled: true
+      AdvancedOptions:
+        rest.action.multi.allow_explicit_index: true

@@ -89,3 +89,9 @@ Outputs:
     Value: !GetAtt LoadBalancer.DNSName
     Export: 
       Name: 'DNS'
+  
+  LogWatchArn:
+    Description: LOGwATCH GROUP
+    Value: !Ref CloudWatchLogsGroup
+    Export: 
+      Name: 'LogWatchArn'
