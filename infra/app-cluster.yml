@@ -66,6 +66,12 @@ Resources:
 
 Outputs:
 
+  ClusterLogName:
+    Description: Information about the value
+    Value: !Ref CloudWatchLogsGroup
+    Export: 
+      Name: ClusterLogName
+
   Cluster:
     Description: Cluster
     Value: !Ref ECSCluster
@@ -92,6 +98,6 @@ Outputs:
   
   LogWatchArn:
     Description: LOGwATCH GROUP
-    Value: !Ref CloudWatchLogsGroup
+    Value: !GetAtt CloudWatchLogsGroup.Arn
     Export: 
       Name: 'LogWatchArn'

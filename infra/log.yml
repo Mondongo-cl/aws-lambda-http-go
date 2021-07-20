@@ -4,10 +4,51 @@ Description: CloudWatch stream log cluster
 
 Resources:
 
+
+  AppLogsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: 'GoApiService-Search'
+      RetentionInDays: 14
+
+  IndexLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties: 
+        LogGroupName: 'GoApiService-Index'
+        RetentionInDays: 14
+
+  SlowLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties: 
+        LogGroupName: 'GoApiService-Slow'
+        RetentionInDays: 14      
+
+#   AppLogsLogGroupLogStream:
+#     DependsOn: AppLogsLogGroup
+#     Type: AWS::Logs::LogStream
+#     Properties: 
+#       LogGroupName: GoApiService-Search
+#       LogStreamName: AppLogsLogGroupLogStream
+# 
+# 
+#   IndexLogGroupLogStream:
+#     DependsOn: IndexLogGroup
+#     Type: AWS::Logs::LogStream
+#     Properties: 
+#       LogGroupName: GoApiService-Index
+#       LogStreamName: IndexLogGroupLogStream
+# 
+  SlowLogGroupLogStream: 
+    Type: AWS::Logs::LogStream
+    Properties: 
+      LogGroupName: !ImportValue ClusterLogName
+      LogStreamName: slow-stream
+
+
   ElasticsearchDomain:
     Type: AWS::Elasticsearch::Domain
     Properties:
-      DomainName: 'http-go-log'
+      # DomainName: 'http-go-log'
       ElasticsearchVersion: '7.10'
       ElasticsearchClusterConfig:
         DedicatedMasterEnabled: true
@@ -16,29 +57,35 @@ Resources:
         InstanceType: 't3.small.elasticsearch'
         DedicatedMasterType: 't3.small.elasticsearch'
         DedicatedMasterCount: '3'
+      AccessPolicies:
+            Version: '2012-10-17'        
+            Statement:
+              -
+                Effect: 'Allow'
+                Principal:
+                  Service:  "es.amazonaws.com"
+                Action:
+                - logs:PutLogEvents
+                - logs:CreateLogStream
+                Resource: !ImportValue LogWatchArn
+      LogPublishingOptions:
+        ES_APPLICATION_LOGS: 
+            CloudWatchLogsLogGroupArn: !ImportValue LogWatchArn
+            Enabled: true
+        SEARCH_SLOW_LOGS:
+            CloudWatchLogsLogGroupArn: !ImportValue LogWatchArn
+            Enabled: true
+        INDEX_SLOW_LOGS:
+            CloudWatchLogsLogGroupArn: !ImportValue LogWatchArn
+            Enabled: true
       EBSOptions:
         EBSEnabled: true
         Iops: '0'
         VolumeSize: '20'
         VolumeType: 'gp2'
-      AccessPolicies:
-        Version: '2012-10-17'
-        Statement:
-          -
-            Effect: 'Allow'
-            Principal:
-              AWS: !Join ['' , ['arn:aws:ec2:', !Ref AWS::Region ,':',!Ref AWS::AccountId,':security-group/', !ImportValue 'ContainerSecurityGroup' ]]
-            Action: '*'
-            Resource: !Join ['' , ['arn:aws:ecs:', !Ref AWS::Region ,':',!Ref AWS::AccountId,':cluster/', !ImportValue 'ECSCluster' ]]
-      LogPublishingOptions:
-        ES_APPLICATION_LOGS:
-            CloudWatchLogsLogGroupArn: !Join ['',['arn:aws:logs:', !Ref AWS::Region , ':' , !Ref AWS::AccountId ,':log-group:', !ImportValue LogWatchArn]]
-            Enabled: true
-        SEARCH_SLOW_LOGS:
-            CloudWatchLogsLogGroupArn: !Join ['',['arn:aws:logs:', !Ref AWS::Region , ':' , !Ref AWS::AccountId ,':log-group:', !ImportValue LogWatchArn]]
-            Enabled: true
-        INDEX_SLOW_LOGS:
-            CloudWatchLogsLogGroupArn: !Join ['',['arn:aws:logs:', !Ref AWS::Region , ':' , !Ref AWS::AccountId ,':log-group:', !ImportValue LogWatchArn]]
-            Enabled: true
+      
       AdvancedOptions:
         rest.action.multi.allow_explicit_index: true
+
+
+
