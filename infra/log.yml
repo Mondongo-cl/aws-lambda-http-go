@@ -37,12 +37,6 @@ Resources:
         ES_APPLICATION_LOGS: 
             CloudWatchLogsLogGroupArn: !ImportValue LogWatchArn
             Enabled: true
-        SEARCH_SLOW_LOGS:
-            CloudWatchLogsLogGroupArn: !ImportValue LogWatchArn
-            Enabled: true
-        INDEX_SLOW_LOGS:
-            CloudWatchLogsLogGroupArn: !ImportValue LogWatchArn
-            Enabled: true
       EBSOptions:
         EBSEnabled: true
         Iops: '0'
