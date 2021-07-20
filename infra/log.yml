@@ -4,40 +4,6 @@ Description: CloudWatch stream log cluster
 
 Resources:
 
-
-  AppLogsLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties: 
-      LogGroupName: 'GoApiService-Search'
-      RetentionInDays: 14
-
-  IndexLogGroup:
-      Type: AWS::Logs::LogGroup
-      Properties: 
-        LogGroupName: 'GoApiService-Index'
-        RetentionInDays: 14
-
-  SlowLogGroup:
-      Type: AWS::Logs::LogGroup
-      Properties: 
-        LogGroupName: 'GoApiService-Slow'
-        RetentionInDays: 14      
-
-#   AppLogsLogGroupLogStream:
-#     DependsOn: AppLogsLogGroup
-#     Type: AWS::Logs::LogStream
-#     Properties: 
-#       LogGroupName: GoApiService-Search
-#       LogStreamName: AppLogsLogGroupLogStream
-# 
-# 
-#   IndexLogGroupLogStream:
-#     DependsOn: IndexLogGroup
-#     Type: AWS::Logs::LogStream
-#     Properties: 
-#       LogGroupName: GoApiService-Index
-#       LogStreamName: IndexLogGroupLogStream
-# 
   SlowLogGroupLogStream: 
     Type: AWS::Logs::LogStream
     Properties: 
@@ -48,7 +14,6 @@ Resources:
   ElasticsearchDomain:
     Type: AWS::Elasticsearch::Domain
     Properties:
-      # DomainName: 'http-go-log'
       ElasticsearchVersion: '7.10'
       ElasticsearchClusterConfig:
         DedicatedMasterEnabled: true
