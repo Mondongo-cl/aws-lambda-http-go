@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	HostName string
+	HostName        string
+	DelayedHostname string
 )
 
 func start(port *int) {
@@ -60,8 +61,10 @@ func main() {
 		flag.PrintDefaults()
 		return
 	}
+	DelayedHostname = os.Getenv("delayedhost")
+
 	dataaccess.Configure(username, password, hostname, port, databasename)
 	println("starting hello world service...")
-	middleware.RegisterRoutes()
+	middleware.RegisterRoutes(HostName, DelayedHostname)
 	start(publicPort)
 }

@@ -18,13 +18,13 @@ func (c *MySQLConnection) open() (*sql.DB, error) {
 		log.Fatalf("[%s]::connection object is nil", getHostName())
 		return nil, errors.New("invalid connection object")
 	}
-	log.Printf("[%s]connection open using mysql as driver", getHostName())
+	defer log.Printf("[%s]::connection open successfully in %d (ms)", getHostName(), time.Since(sw).Milliseconds())
+	log.Printf("[%s]::connection open using mysql as driver", getHostName())
 	cnn, err := sql.Open("mysql", c.CnnStr)
 	if err != nil {
 		log.Fatalf("[%s]::error while open the connection  --- %s", getHostName(), err.Error())
 		return nil, errors.New(err.Error())
 	}
 
-	log.Printf("[%s]connection open successfully in %d (ms)", getHostName(), time.Since(sw).Milliseconds())
 	return cnn, nil
 }

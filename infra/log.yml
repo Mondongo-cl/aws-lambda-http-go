@@ -4,13 +4,7 @@ Description: CloudWatch stream log cluster
 
 Resources:
 
-  SlowLogGroupLogStream: 
-    Type: AWS::Logs::LogStream
-    Properties: 
-      LogGroupName: !ImportValue ClusterLogName
-      LogStreamName: slow-stream
-
-
+  
   ElasticsearchDomain:
     Type: AWS::Elasticsearch::Domain
     Properties:
