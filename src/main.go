@@ -3,18 +3,49 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/Mondongo-cl/http-rest-echo-go/dataaccess"
 	"github.com/Mondongo-cl/http-rest-echo-go/middleware"
+	"github.com/aws/aws-sdk-go/aws/session"
 	_ "github.com/go-sql-driver/mysql"
+)
+
+var (
+	HostName string
 )
 
 func start(port *int) {
 	http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
 }
 
+func initAwsSession() *session.Session {
+	sess, err := session.NewSession()
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	cfg := sess.Config
+	if cfg != nil && (cfg.Endpoint != nil && cfg.Region != nil) {
+		log.Printf("[%s]::starting in Amazon AWS\nEndpoint:[%s]\nRegion[%s]", HostName, *cfg.Endpoint, *cfg.Region)
+	}
+	return sess
+}
+
 func main() {
+	currentHostname, err := os.Hostname()
+	_ = initAwsSession()
+
+	if err != nil {
+		log.Printf("a error occurred while triying to get the underneath os hostname, the error is %s", err.Error())
+		HostName = "<<None>>"
+
+	} else {
+		HostName = currentHostname
+		log.Printf("the hostname was get successfully the current hostname is %s", HostName)
+	}
 
 	username := flag.String("dbusername", "root", "database username")
 	password := flag.String("dbpassword", "123456", "database password")

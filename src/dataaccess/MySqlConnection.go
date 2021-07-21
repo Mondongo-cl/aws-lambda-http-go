@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"time"
 )
 
 type MySQLConnection struct {
@@ -11,18 +12,19 @@ type MySQLConnection struct {
 }
 
 func (c *MySQLConnection) open() (*sql.DB, error) {
-	log.Println("init connection check")
+	sw := time.Now()
+	log.Printf("[%s]::init connection check", getHostName())
 	if c == nil {
-		log.Fatalln("connection object is nil")
+		log.Fatalf("[%s]::connection object is nil", getHostName())
 		return nil, errors.New("invalid connection object")
 	}
-	log.Println("connection open to ", c.CnnStr, " using mysql as driver")
+	log.Printf("[%s]connection open using mysql as driver", getHostName())
 	cnn, err := sql.Open("mysql", c.CnnStr)
 	if err != nil {
-		log.Fatal(err)
-		log.Fatal("error while open the connection ", err.Error())
+		log.Fatalf("[%s]::error while open the connection  --- %s", getHostName(), err.Error())
 		return nil, errors.New(err.Error())
 	}
-	log.Println("connection open successfully")
+
+	log.Printf("[%s]connection open successfully in %d (ms)", getHostName(), time.Since(sw).Milliseconds())
 	return cnn, nil
 }

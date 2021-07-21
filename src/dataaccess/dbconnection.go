@@ -5,6 +5,27 @@ import (
 	"errors"
 )
 
+func (c *MySQLConnection) CheckVesion() (*string, error) {
+	cnn, err := c.open()
+
+	if err != nil {
+		return nil, errors.New(err.Error())
+	}
+	defer cnn.Close()
+	versionRow, err := cnn.Query("select Version()")
+	if err != nil {
+		return nil, err
+	}
+	var currentVersion *string
+	if versionRow.Next() {
+		err = versionRow.Scan(&currentVersion)
+		if err != nil {
+			*currentVersion = "unknown"
+		}
+	}
+	return currentVersion, nil
+}
+
 func (c *MySQLConnection) Select(query string, params ...interface{}) (*sql.Rows, error) {
 	cnn, err := c.open()
 
