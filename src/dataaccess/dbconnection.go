@@ -3,6 +3,9 @@ package dataaccess
 import (
 	"database/sql"
 	"errors"
+	"log"
+
+	"github.com/Mondongo-cl/http-rest-echo-go/common"
 )
 
 func (c *MySQLConnection) CreateDelayedHostTable() error {
@@ -19,6 +22,10 @@ func (c *MySQLConnection) CreateDelayedHostTable() error {
 	  )`)
 	if err != nil {
 		return err
+	}
+	_, err = cnn.Exec("insert into DelayedHost(hostname) values(?)", common.GetHostName())
+	if err != nil {
+		log.Printf("[%s]:: can't set this host as delayed in while creating delayed host table error: %s", common.GetHostName(), err.Error())
 	}
 	return nil
 }
