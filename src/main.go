@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/Mondongo-cl/http-rest-echo-go/dataaccess"
 	"github.com/Mondongo-cl/http-rest-echo-go/middleware"
@@ -36,17 +35,7 @@ func initAwsSession() *session.Session {
 }
 
 func main() {
-	currentHostname, err := os.Hostname()
 	_ = initAwsSession()
-
-	if err != nil {
-		log.Printf("a error occurred while triying to get the underneath os hostname, the error is %s", err.Error())
-		HostName = "<<None>>"
-
-	} else {
-		HostName = currentHostname
-		log.Printf("the hostname was get successfully the current hostname is %s", HostName)
-	}
 
 	username := flag.String("dbusername", "root", "database username")
 	password := flag.String("dbpassword", "123456", "database password")
@@ -61,10 +50,9 @@ func main() {
 		flag.PrintDefaults()
 		return
 	}
-	DelayedHostname = os.Getenv("delayedhost")
 
 	dataaccess.Configure(username, password, hostname, port, databasename)
 	println("starting hello world service...")
-	middleware.RegisterRoutes(HostName, DelayedHostname)
+	middleware.RegisterRoutes(HostName)
 	start(publicPort)
 }

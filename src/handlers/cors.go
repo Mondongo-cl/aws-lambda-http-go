@@ -2,20 +2,19 @@ package handlers
 
 import (
 	"net/http"
-	"os"
 	"time"
+
+	"github.com/Mondongo-cl/http-rest-echo-go/dataaccess"
 )
 
 /*
 Add cors support to "*" as allowed origin:
 */
-func CorsHandler(handler http.HandlerFunc, DelayedHostname string) http.Handler {
+func CorsHandler(handler http.HandlerFunc) http.Handler {
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		if h, e := os.Hostname(); e == nil {
-			if h == DelayedHostname {
-				time.Sleep(time.Millisecond * 500)
-			}
+		if dataaccess.IsDelayedHost() {
+			time.Sleep(time.Second * 5)
 		}
 		rw.Header().Add("Access-Control-Allow-Origin", "*")
 		rw.Header().Add("Access-Control-Allow-Methods", "POST, GET, PUT, PATCH, DELETE, OPTIONS")
