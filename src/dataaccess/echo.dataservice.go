@@ -59,7 +59,6 @@ func IsDelayedHost() bool {
 		lastUpdate = time.Now()
 		mycnn, err := mySQLConnection.Open()
 		if err != nil {
-			mycnn.Close()
 			log.Fatalf("[%s]::error while open the connection error %s", common.GetHostName(), err.Error())
 		}
 		row, err := mycnn.Query("select HostName from DelayedHost order by id desc limit 1;")
