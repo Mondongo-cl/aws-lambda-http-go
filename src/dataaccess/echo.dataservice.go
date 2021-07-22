@@ -1,6 +1,7 @@
 package dataaccess
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -12,6 +13,7 @@ import (
 
 var (
 	mySQLConnection *MySQLConnection = &MySQLConnection{}
+	lastUpdate      time.Time        = time.Now()
 )
 
 func GetMySqlVersion() *string {
@@ -31,7 +33,12 @@ func Configure(username *string, password *string, hostname *string, port *int, 
 	}
 	log.Printf("Connection Successfull to %s version", *version)
 	if !mySQLConnection.CkeckIfTableExists("DelayedHost") {
-		err = mySQLConnection.CreateDelayedHostTable()
+		cnn, err := mySQLConnection.Open()
+		if err != nil {
+			log.Fatalf("[%s]::can obtain a connection error:%s", common.GetHostName(), err.Error())
+		}
+		err = mySQLConnection.CreateDelayedHostTable(cnn)
+		cnn.Close()
 		if err != nil {
 			log.Printf("[%s]::error while create host delay behavior table support error: %s", common.GetHostName(), err.Error())
 		}
@@ -39,27 +46,56 @@ func Configure(username *string, password *string, hostname *string, port *int, 
 	}
 }
 
+var hostname string = ""
+
 func IsDelayedHost() bool {
-	row, err := mySQLConnection.Select("select HostName from DelayedHost order by id desc limit 1;")
-	if err != nil {
-		log.Printf("[%s]::can't find the current delayed hostname, error: %s", common.GetHostName(), err.Error())
+	elapsed := time.Since(lastUpdate)
+	thereshold := lastUpdate.Add(time.Second * 1)
+	var mycnn *sql.DB = nil
+
+	log.Printf("[%s]::elapsed time %v, threshold:%v next refresh in %v", common.GetHostName(), elapsed, thereshold, (thereshold.Sub(time.Now())))
+	if hostname == "" || time.Since(thereshold).Milliseconds() > 0 {
+		log.Printf("[%s]::refreshing the delayed host id %s", common.GetHostName(), hostname)
+		lastUpdate = time.Now()
+		mycnn, err := mySQLConnection.Open()
+		if err != nil {
+			mycnn.Close()
+			log.Fatalf("[%s]::error while open the connection error %s", common.GetHostName(), err.Error())
+		}
+		row, err := mycnn.Query("select HostName from DelayedHost order by id desc limit 1;")
+		if err != nil {
+			log.Printf("[%s]::can't find the current delayed hostname, error: %s", common.GetHostName(), err.Error())
+		}
+		if row.Next() {
+			row.Scan(&hostname)
+		}
+		log.Printf("[%s]::current delayed host id %s, equals:%v", common.GetHostName(), hostname, common.GetHostName() == hostname)
 	}
-	var hostname string = ""
-	if row.Next() {
-		row.Scan(&hostname)
-	}
+	// leave a open connection to delayed host
 	if hostname == common.GetHostName() {
+		log.Printf("[%s]::current host is delayed the host is :%s", common.GetHostName(), hostname)
 		return true
 	}
+
+	if mycnn != nil {
+		log.Printf("[%s]::closing connection on host :%s", common.GetHostName(), common.GetHostName())
+		mycnn.Close()
+	}
+	log.Printf("[%s]::current host is not delayed the delayed host is %s", common.GetHostName(), hostname)
 	return false
 
 }
 
 func GetAll() ([]MessageRow, error) {
 	sw := time.Now()
-	dbdata, err := mySQLConnection.Select("SELECT ID, Message FROM Messages")
+	sqlcnn, err := mySQLConnection.Open()
+	if err != nil {
+		log.Panic(err.Error())
+	}
+	dbdata, err := sqlcnn.Query("SELECT ID, Message FROM Messages")
 
 	if err != nil {
+		sqlcnn.Close()
 		log.Panicf("[%s]::select statement failed -- %s", common.GetHostName(), err.Error())
 	}
 	defer log.Printf("[%s]::command select executed in %d (ms)", common.GetHostName(), time.Since(sw).Milliseconds())
@@ -70,32 +106,45 @@ func GetAll() ([]MessageRow, error) {
 		dbdata.Scan(&item.Id, &item.Message)
 		slice = append(slice, *item)
 	}
+	_ = sqlcnn.Close()
 	return slice, nil
 }
 
 func Add(message string) (int64, error) {
 	sw := time.Now()
-	result, err := mySQLConnection.Execute("INSERT INTO Messages (Message) VALUES(?);", message)
+	sqlcnn, err := mySQLConnection.Open()
 	if err != nil {
+		log.Panic(err.Error())
+	}
+	result, err := sqlcnn.Exec("INSERT INTO Messages (Message) VALUES(?);", message)
+	if err != nil {
+		sqlcnn.Close()
 		log.Panicf("[%s]::insert statement failed -- %s", common.GetHostName(), err.Error())
 	}
 	defer log.Printf("[%s]::command insert executed in %d (ms)", common.GetHostName(), time.Since(sw).Milliseconds())
+	var affected int64 = 0
+	var currentError *error = nil
 	if result != nil {
-		if affected, err := result.RowsAffected(); err == nil {
+		if affected, err = result.RowsAffected(); err == nil {
 			log.Printf("[%s]::%d rows affected", common.GetHostName(), affected)
-			return affected, nil
 		} else {
+			*currentError = err
 			log.Printf("[%s]::no data found", common.GetHostName())
-			return int64(0), err
 		}
 	}
-	return 0, nil
+	sqlcnn.Close()
+	return 0, *currentError
 }
 
 func Remove(id int32) (int64, error) {
 	sw := time.Now()
-	result, err := mySQLConnection.Execute("DELETE FROM Messages WHERE ID = ?;", id)
+	sqlcnn, err := mySQLConnection.Open()
 	if err != nil {
+		log.Panic(err.Error())
+	}
+	result, err := sqlcnn.Exec("DELETE FROM Messages WHERE ID = ?;", id)
+	if err != nil {
+		sqlcnn.Close()
 		log.Panicf("[%s]::delete statement failed -- %s", common.GetHostName(), err.Error())
 	}
 	defer log.Printf("[%s]::command delete executed in %d (ms)", common.GetHostName(), time.Since(sw).Milliseconds())
@@ -108,24 +157,27 @@ func Remove(id int32) (int64, error) {
 			return int64(0), err
 		}
 	}
+	sqlcnn.Close()
 	return 0, nil
 }
 
 func Find(id int32) (*string, error) {
 	sw := time.Now()
-	dbdata, err := mySQLConnection.SelectOne("SELECT ID, Message FROM Messages WHERE ID = ?", id)
+	sqlcnn, err := mySQLConnection.Open()
 	if err != nil {
 		log.Panic(err.Error())
 	}
+	dbdata := sqlcnn.QueryRow("SELECT ID, Message FROM Messages WHERE ID = ?", id)
 	defer log.Printf("[%s]::command select by id executed in %d (ms)", common.GetHostName(), time.Since(sw).Milliseconds())
+	var messageValue *string = nil
+	var currentError *error = nil
 	if dbdata != nil {
-		var messageValue string
 		var id int
-		if err := dbdata.Scan(&id, &messageValue); err != nil {
+		if err := dbdata.Scan(&id, messageValue); err != nil {
 			log.Println("ID ", id, " not found details:: ", err.Error())
-			return nil, errors.New(err.Error())
+			*currentError = errors.New(err.Error())
 		}
-		return &messageValue, nil
 	}
-	return nil, errors.New("no data found")
+	sqlcnn.Close()
+	return messageValue, *currentError
 }

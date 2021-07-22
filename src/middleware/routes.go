@@ -13,13 +13,17 @@ import (
 
 func ResponseHealthyQuery(w http.ResponseWriter, r *http.Request) {
 	version := dataaccess.GetMySqlVersion()
-	if version != nil && !dataaccess.IsDelayedHost() {
+	if version != nil {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(fmt.Sprintf("Hostname:%s\nMy SQL Version:%s\nTime:%v\nstatus:Healthy", common.GetHostName(), *version, time.Now())))
+		if dataaccess.IsDelayedHost() {
+			time.Sleep(time.Second * 1)
+			w.Write([]byte(fmt.Sprintf("Hostname:%s\nMy SQL Version:%s\nTime:%v\nstatus:Delayed", common.GetHostName(), *version, time.Now())))
+		} else {
+			w.Write([]byte(fmt.Sprintf("Hostname:%s\nMy SQL Version:%s\nTime:%v\nstatus:Healthy", common.GetHostName(), *version, time.Now())))
+		}
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf("Hostname:%s\nMy SQL Version:\nTime:%v\nstatus:Unhealthy", common.GetHostName(), time.Now())))
-
 	}
 
 }
