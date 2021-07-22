@@ -64,10 +64,15 @@ func IsDelayedHost() bool {
 		}
 		row, err := mycnn.Query("select HostName from DelayedHost order by id desc limit 1;")
 		if err != nil {
+			mycnn.Close()
 			log.Printf("[%s]::can't find the current delayed hostname, error: %s", common.GetHostName(), err.Error())
 		}
-		if row.Next() {
-			row.Scan(&hostname)
+		if row != nil {
+			if row.Next() {
+				row.Scan(&hostname)
+			}
+		} else {
+			hostname = ""
 		}
 		log.Printf("[%s]::current delayed host id %s, equals:%v", common.GetHostName(), hostname, common.GetHostName() == hostname)
 	}
@@ -106,6 +111,7 @@ func GetAll() ([]MessageRow, error) {
 		dbdata.Scan(&item.Id, &item.Message)
 		slice = append(slice, *item)
 	}
+
 	_ = sqlcnn.Close()
 	return slice, nil
 }
