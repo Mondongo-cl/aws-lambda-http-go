@@ -15,7 +15,11 @@ func Configure(settings settings.ConnectionSettings) {
 
 func GetAll() ([]MessageRow, error) {
 	log.Println("Get All operation start")
-	dbdata, err := mySQLConnection.Select("SELECT ID, Message FROM Messages")
+	cnn, err := mySQLConnection.Open()
+	if err != nil {
+		return nil, err
+	}
+	dbdata, err := cnn.Query("SELECT ID, Message FROM Messages")
 	if err != nil {
 		log.Fatal(err.Error())
 		log.Fatal("selects statement failed")
@@ -29,14 +33,20 @@ func GetAll() ([]MessageRow, error) {
 		item := MessageRow{Id: int32(id), Message: messageValue}
 		slice = append(slice, item)
 	}
+	cnn.Close()
 	log.Printf("dbData value is %v \n", dbdata)
 	return slice, nil
 }
 
 func Add(message string) (int64, error) {
 	log.Println("Add operation start")
+	cnn, err := mySQLConnection.Open()
+	if err != nil {
+		return -1, err
+	}
 
-	result, err := mySQLConnection.Execute("INSERT INTO Messages (Message) VALUES(?);", message)
+	result, err := cnn.Exec("INSERT INTO Messages (Message) VALUES(?);", message)
+	cnn.Close()
 	if err != nil {
 		log.Fatal(err.Error())
 		return int64(0), err
@@ -54,8 +64,12 @@ func Add(message string) (int64, error) {
 
 func Remove(id int32) (int64, error) {
 	log.Println("Add operation start")
-
-	result, err := mySQLConnection.Execute("DELETE FROM Messages WHERE ID = ?;", id)
+	cnn, err := mySQLConnection.Open()
+	if err != nil {
+		return -1, err
+	}
+	result, err := cnn.Exec("DELETE FROM Messages WHERE ID = ?;", id)
+	cnn.Close()
 	if err != nil {
 		log.Fatal(err.Error())
 		return int64(0), err
@@ -73,12 +87,15 @@ func Remove(id int32) (int64, error) {
 
 func Find(id int32) (*string, error) {
 	log.Println("Find operation start")
-	dbdata := mySQLConnection.SelectOne("SELECT ID, Message FROM Messages WHERE ID = ?", id)
-
+	cnn, err := mySQLConnection.Open()
+	if err != nil {
+		return nil, err
+	}
+	dbdata := cnn.QueryRow("SELECT Message FROM Messages WHERE ID = ?", id)
 	if dbdata != nil {
 		var messageValue string
 		var id int
-		if err := dbdata.Scan(&id, &messageValue); err != nil {
+		if err := dbdata.Scan(&messageValue); err != nil {
 			log.Println("ID ", id, " not found details:: ", err.Error())
 			return nil, errors.New(err.Error())
 		}

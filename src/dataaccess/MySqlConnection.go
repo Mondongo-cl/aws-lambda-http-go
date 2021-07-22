@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 )
 
 const cnnStr string = "%s:%s@tcp(%s:%d)/%s"
@@ -27,7 +28,7 @@ func (c *MySQLConnection) Configure(Hostname *string, Port *int, Username *strin
 	return nil
 }
 
-func (c *MySQLConnection) open() (*sql.DB, error) {
+func (c *MySQLConnection) Open() (*sql.DB, error) {
 	log.Println("init connection check")
 	if c == nil {
 		log.Fatalln("connection object is nil")
@@ -40,6 +41,9 @@ func (c *MySQLConnection) open() (*sql.DB, error) {
 		log.Fatal("error while open the connection ", err.Error())
 		return nil, errors.New(err.Error())
 	}
-	log.Println("connection open successfully")
-	return cnn, nil
+	cnn.SetConnMaxIdleTime(time.Second * 1)
+	cnn.SetConnMaxLifetime(time.Second * 3)
+	cnn.SetMaxIdleConns(10)
+	cnn.SetMaxOpenConns(10)
+	return cnn, cnn.Ping()
 }

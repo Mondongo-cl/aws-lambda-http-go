@@ -5,6 +5,32 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "Launch",
+            "invokeTarget":{
+                "target": "code",
+                "projectRoot": "${workspaceFolder}/src",
+                "lambdaHandler": "main.handleRequest"
+            },
+            "lambda": {
+                "runtime": "go1.x",
+                "payload": {
+                    "json": {
+                        "Message":"Hola Local!"
+                    }
+                },
+                "environmentVariables": {
+                    "servername":"localhost",
+                    "serverport":"3306",
+                    "username":"root",
+                    "password":"123456",
+                    "database":"testdb"
+                }
+            }
+            
+        },
+        {
             "name": "Launch",
             "type": "go",
             "request": "launch",
