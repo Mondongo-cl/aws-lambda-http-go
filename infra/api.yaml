@@ -28,17 +28,17 @@ Resources:
               awslogs-stream-prefix: http-go
           Environment:
             - Name: dbusername
-              Value: root
+              Value: 
             - Name: dbpassword
-              Value: acemq3306
+              Value: 
             - Name: dbhostname
-              Value: www.cyberpojos.com
+              Value: 
             - Name: dbport
-              Value: 3306
+              Value: 
             - Name: httplistenerport
-              Value: 8000
+              Value: 
             - Name: databasename
-              Value: testdb
+              Value: 
 
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup

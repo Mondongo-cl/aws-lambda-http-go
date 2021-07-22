@@ -77,24 +77,29 @@ func (c *MySQLConnection) CkeckIfTableExists(tablename string) bool {
 	}
 }
 
-func (c *MySQLConnection) CheckVesion() (*string, error) {
-	cnn, err := c.Open()
-	if err != nil {
-		return nil, errors.New(err.Error())
-	}
+var versionstring string = ""
 
-	versionRow, err := cnn.Query("select version() as Version")
-	if err != nil {
-		cnn.Close()
-		return nil, err
-	}
-	var currentVersion *string
-	if versionRow.Next() {
-		err = versionRow.Scan(&currentVersion)
+func (c *MySQLConnection) CheckVesion() (*string, error) {
+	if versionstring == "" {
+		cnn, err := c.Open()
 		if err != nil {
-			*currentVersion = "unknown"
+			return nil, errors.New(err.Error())
 		}
+
+		versionRow, err := cnn.Query("select version() as Version")
+		if err != nil {
+			cnn.Close()
+			return nil, err
+		}
+		var currentVersion *string
+		if versionRow.Next() {
+			err = versionRow.Scan(&currentVersion)
+			if err != nil {
+				*currentVersion = "unknown"
+			}
+		}
+		versionstring = *currentVersion
+		cnn.Close()
 	}
-	cnn.Close()
-	return currentVersion, nil
+	return &versionstring, nil
 }
