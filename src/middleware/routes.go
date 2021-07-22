@@ -15,7 +15,7 @@ func ResponseHealthyQuery(w http.ResponseWriter, r *http.Request) {
 	version := dataaccess.GetMySqlVersion()
 	if version != nil {
 		w.WriteHeader(http.StatusOK)
-		if dataaccess.IsDelayedHost() {
+		if dataaccess.IsDelayedHost(false) {
 			time.Sleep(time.Second * 1)
 			w.Write([]byte(fmt.Sprintf("Hostname:%s\nMy SQL Version:%s\nTime:%v\nstatus:Delayed", common.GetHostName(), *version, time.Now())))
 		} else {

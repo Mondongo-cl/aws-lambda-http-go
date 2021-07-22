@@ -48,32 +48,33 @@ func Configure(username *string, password *string, hostname *string, port *int, 
 
 var hostname string = ""
 
-func IsDelayedHost() bool {
+func IsDelayedHost(useDb bool) bool {
 	elapsed := time.Since(lastUpdate)
 	thereshold := lastUpdate.Add(time.Second * 1)
 	var mycnn *sql.DB = nil
-
-	log.Printf("[%s]::elapsed time %v, threshold:%v next refresh in %v", common.GetHostName(), elapsed, thereshold, (thereshold.Sub(time.Now())))
-	if hostname == "" || time.Since(thereshold).Milliseconds() > 0 {
-		log.Printf("[%s]::refreshing the delayed host id %s", common.GetHostName(), hostname)
-		lastUpdate = time.Now()
-		mycnn, err := mySQLConnection.Open()
-		if err != nil {
-			log.Fatalf("[%s]::error while open the connection error %s", common.GetHostName(), err.Error())
-		}
-		row, err := mycnn.Query("select HostName from DelayedHost order by id desc limit 1;")
-		if err != nil {
-			mycnn.Close()
-			log.Printf("[%s]::can't find the current delayed hostname, error: %s", common.GetHostName(), err.Error())
-		}
-		if row != nil {
-			if row.Next() {
-				row.Scan(&hostname)
+	if useDb {
+		log.Printf("[%s]::elapsed time %v, threshold:%v next refresh in %v", common.GetHostName(), elapsed, thereshold, (thereshold.Sub(time.Now())))
+		if hostname == "" || time.Since(thereshold).Milliseconds() > 0 {
+			log.Printf("[%s]::refreshing the delayed host id %s", common.GetHostName(), hostname)
+			lastUpdate = time.Now()
+			mycnn, err := mySQLConnection.Open()
+			if err != nil {
+				log.Fatalf("[%s]::error while open the connection error %s", common.GetHostName(), err.Error())
 			}
-		} else {
-			hostname = ""
+			row, err := mycnn.Query("select HostName from DelayedHost order by id desc limit 1;")
+			if err != nil {
+				mycnn.Close()
+				log.Printf("[%s]::can't find the current delayed hostname, error: %s", common.GetHostName(), err.Error())
+			}
+			if row != nil {
+				if row.Next() {
+					row.Scan(&hostname)
+				}
+			} else {
+				hostname = ""
+			}
+			log.Printf("[%s]::current delayed host id %s, equals:%v", common.GetHostName(), hostname, common.GetHostName() == hostname)
 		}
-		log.Printf("[%s]::current delayed host id %s, equals:%v", common.GetHostName(), hostname, common.GetHostName() == hostname)
 	}
 	// leave a open connection to delayed host
 	if hostname == common.GetHostName() {

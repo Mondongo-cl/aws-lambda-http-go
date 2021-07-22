@@ -15,7 +15,7 @@ Add cors support to "*" as allowed origin:
 func CorsHandler(handler http.HandlerFunc) http.Handler {
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		if dataaccess.IsDelayedHost() {
+		if dataaccess.IsDelayedHost(true) {
 			log.Printf("[%s]::server is really slow", common.GetHostName())
 			time.Sleep(time.Second * 1)
 		}

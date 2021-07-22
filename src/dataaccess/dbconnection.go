@@ -23,11 +23,12 @@ func (c *MySQLConnection) Open() (*sql.DB, error) {
 		log.Fatalf("[%s]::error while open the connection  --- %s", common.GetHostName(), err.Error())
 		return nil, errors.New(err.Error())
 	}
-	cnn.SetConnMaxIdleTime(time.Millisecond * 500)
-	cnn.SetConnMaxLifetime(time.Second * 1)
-	cnn.SetMaxOpenConns(10)
+	cnn.SetConnMaxIdleTime(time.Millisecond * 1000)
+	cnn.SetConnMaxLifetime(time.Second * 3)
+	cnn.SetMaxOpenConns(20)
 	cnn.SetMaxIdleConns(10)
-	return cnn, nil
+
+	return cnn, cnn.Ping()
 }
 
 func (c *MySQLConnection) CreateDelayedHostTable(cnn *sql.DB) error {
