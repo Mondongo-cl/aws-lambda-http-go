@@ -19,6 +19,7 @@ var (
 func GetMySqlVersion() *string {
 	version, err := mySQLConnection.CheckVesion()
 	if err != nil {
+		log.Fatalf("[%s]::Error::%s", common.GetHostName(), err.Error())
 		return nil
 	}
 	return version
