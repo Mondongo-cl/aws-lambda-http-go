@@ -49,6 +49,7 @@ func handleRequest(ctx context.Context, r events.APIGatewayProxyRequest) (events
 	default:
 		return events.APIGatewayProxyResponse{StatusCode: 504, Body: "", Headers: map[string]string{"Content-Type": "application/json"}}, nil
 	}
+
 }
 
 func main() {
@@ -68,5 +69,4 @@ func main() {
 
 	log.Println("starting hello world service...")
 	lambda.Start(handleRequest)
-	log.Println("stoping hello worls service...")
 }

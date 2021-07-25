@@ -11,6 +11,20 @@ var mySQLConnection MySQLConnection = MySQLConnection{}
 
 func Configure(settings settings.ConnectionSettings) {
 	mySQLConnection.Configure(&settings.Host, &settings.Port, &settings.Username, &settings.Password, &settings.Database)
+	log.Printf("starting connection test to %s mysql server", settings.Host)
+	c, e := mySQLConnection.Open()
+	if e == nil {
+		log.Printf("connection successfully to %s, starting ping", settings.Host)
+		e = c.Ping()
+		if e != nil {
+			log.Printf("ERROR:: %v while ping to %s\\%s", e, settings.Host, settings.Database)
+			panic(e)
+		}
+		log.Println("all ok!!, closing connections")
+		c.Close()
+	} else {
+		panic(e)
+	}
 }
 
 func GetAll() ([]MessageRow, error) {

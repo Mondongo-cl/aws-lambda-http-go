@@ -13,45 +13,23 @@
                 "projectRoot": "${workspaceFolder}/src",
                 "lambdaHandler": "main.handleRequest"
             },
+            "sam": {
+                "dockerNetwork": "go-services"
+            },
             "lambda": {
                 "runtime": "go1.x",
                 "payload": {
-                    "json": {
-                        "Message":"Hola Local!"
-                    }
+                    "path": "payload.json"                    
                 },
                 "environmentVariables": {
-                    "servername":"localhost",
+                    "servername":"mysql1",
                     "serverport":"3306",
                     "username":"root",
                     "password":"123456",
                     "database":"testdb"
-                }
+                },
             }
             
-        },
-        {
-            "name": "Launch",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "remotePath": "",
-            "port": 2345,
-            "host": "127.0.0.1",
-            "program": "${workspaceFolder}/src",
-            "env": {},
-            "args": [],
-            "showLog": true
-        },
-        {
-            "name": "Attach",
-            "type": "go",
-            "request": "attach",
-            "mode": "remote",
-            "remotePath": "${workspaceFolder}",
-            "port": 2345,
-            "host": "127.0.0.1",
-            "showLog": true
         }
     ]
 }

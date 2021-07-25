@@ -1,0 +1,17 @@
+{
+"resource":"/customers/12", 
+"path":"some/path/service", 
+"httpMethod":"POST",
+"headers":{"Content-Type":"application/json", "Accept":"*/*"},
+"multiValueHeaders":{"a":["s1","s2"],"b":["d1","d2"]},
+"queryStringParameters":{ "username":"woops" },
+"multiValueQueryStringParameters":{"a":["s1","s2"],"b":["d1","d2"]},
+"pathParameters":{},
+"stageVariables":{},
+"requestContext":{
+    "requestId":"guid"
+},
+"body":"{\"Message\":\"Hello Debug Lambda!\"}",
+"isBase64Encoded":false
+
+}
