@@ -1,0 +1,13 @@
+{
+    "go.delveConfig": {
+        "dlvLoadConfig": {
+            "followPointers": true,
+            "maxVariableRecurse": 3,
+            "maxStringLen": 128,
+            "maxArrayValues": 64,
+            "maxStructFields": 32
+        },
+        "apiVersion": 2,
+        "showGlobalVariables": false
+    }
+}

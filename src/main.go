@@ -17,8 +17,6 @@ import (
 )
 
 func handleRequest(ctx context.Context, r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-
-	defer log.Printf("event id: %s has benn processed", r.RequestContext.RequestID)
 	switch r.HTTPMethod {
 	case "GET":
 		data, err := dataaccess.GetAll()
