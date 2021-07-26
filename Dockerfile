@@ -1,10 +1,10 @@
-FROM public.ecr.aws/lambda/provided:al2 as builder
+FROM golang:latest as builder
 # install GIT
 WORKDIR /go/src/app
 COPY . ./http-rest-echo-go/
 # RUN yum install -y git
 # RUN git clone https://github.com/Mondongo-cl/http-rest-echo-go.git
-RUN yum install -y golang
+# RUN yum install -y golang
 # RUN go get -d -v ./...
 
 RUN go env -w GOPROXY=direct
@@ -12,6 +12,11 @@ WORKDIR /go/src/app/http-rest-echo-go/src
 RUN GOOS=linux go build .
 # RUN go get -d -v ./...
 # RUN go install -v ./...
+
+FROM scratch as test
+WORKDIR /go/src/app/
+COPY --from=builder /go/src/app/http-rest-echo-go .
+RUN src/app/http-rest-echo-go
 
 # copy artifacts to a clean image
 # FROM public.ecr.aws/lambda/go:1
