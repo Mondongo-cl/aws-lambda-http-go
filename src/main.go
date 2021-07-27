@@ -19,33 +19,35 @@ import (
 
 func handleRequest(ctx context.Context, r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	p, e := json.Marshal(r)
-	if e != nil {
+	if e == nil {
 		log.Printf("%v payload received ----> %v", time.Now(), string(p))
+	} else {
+		log.Printf("cannot marshall request data error %v", e)
 	}
+
 	switch r.HTTPMethod {
 	case "GET":
 
 		data, err := dataaccess.GetAll()
 		if err != nil {
-			panic(err.Error())
+			return events.APIGatewayProxyResponse{StatusCode: 404, Body: err.Error(), Headers: map[string]string{"Content-Type": "text/plain"}}, nil
 		}
 		b, err := json.Marshal(data)
 		if err != nil {
-			panic("Serialization Error:: " + err.Error())
+			return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error(), Headers: map[string]string{"Content-Type": "text/plain"}}, nil
 		}
 		result := string(b)
-		log.Printf("payload:[%s]", result)
 		return events.APIGatewayProxyResponse{StatusCode: 200, Body: result, Headers: map[string]string{"Content-Type": "application/json"}}, nil
 	case "POST":
 		data := datatypes.EchoRequest{}
 		err := json.Unmarshal([]byte(r.Body), &data)
 		if err != nil {
-			panic("BAD REQUEST")
+			return events.APIGatewayProxyResponse{StatusCode: 404, Body: err.Error(), Headers: map[string]string{"Content-Type": "text/plain"}}, nil
 		}
 		dataaccess.Add(data.Message)
 		b, err := json.Marshal(data)
 		if err != nil {
-			panic("Serialization Error:: " + err.Error())
+			return events.APIGatewayProxyResponse{StatusCode: 500, Body: err.Error(), Headers: map[string]string{"Content-Type": "text/plain"}}, nil
 		}
 		result := string(b)
 		log.Printf("payload:[%s]", result)

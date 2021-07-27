@@ -40,9 +40,7 @@ func (c *MySQLConnection) Open() (*sql.DB, error) {
 	log.Printf("connection open to %s:%d using mysql as driver", c.Host, c.Port)
 	cnn, err := sql.Open("mysql", fmt.Sprintf(cnnStr, c.Username, c.Password, c.Host, c.Port, c.Database))
 	if err != nil {
-		log.Fatal(err)
-		log.Fatal("error while open the connection ", err.Error())
-		return nil, errors.New(err.Error())
+		return nil, err
 	}
 	cnn.SetConnMaxIdleTime(time.Second * 1)
 	cnn.SetConnMaxLifetime(time.Second * 3)

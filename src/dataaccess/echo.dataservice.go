@@ -35,7 +35,7 @@ func GetAll() ([]MessageRow, error) {
 	}
 	dbdata, err := cnn.Query("SELECT ID, Message FROM Messages")
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal(err)
 		log.Fatal("selects statement failed")
 
 	}
@@ -48,7 +48,7 @@ func GetAll() ([]MessageRow, error) {
 		slice = append(slice, item)
 	}
 	cnn.Close()
-	log.Printf("dbData value is %v \n", dbdata)
+	log.Println("Get all opration end successfully")
 	return slice, nil
 }
 
@@ -62,7 +62,7 @@ func Add(message string) (int64, error) {
 	result, err := cnn.Exec("INSERT INTO Messages (Message) VALUES(?);", message)
 	cnn.Close()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal(err)
 		return int64(0), err
 	}
 	if result != nil {
@@ -85,7 +85,7 @@ func Remove(id int32) (int64, error) {
 	result, err := cnn.Exec("DELETE FROM Messages WHERE ID = ?;", id)
 	cnn.Close()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal(err)
 		return int64(0), err
 	}
 	if result != nil {
@@ -111,10 +111,9 @@ func Find(id int32) (*string, error) {
 		var id int
 		if err := dbdata.Scan(&messageValue); err != nil {
 			log.Println("ID ", id, " not found details:: ", err.Error())
-			return nil, errors.New(err.Error())
+			return nil, err
 		}
 		return &messageValue, nil
 	}
-	log.Printf("dbData value is %v \n", dbdata)
 	return nil, errors.New("no data found")
 }
