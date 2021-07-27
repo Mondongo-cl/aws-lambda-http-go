@@ -19,7 +19,10 @@ type MySQLConnection struct {
 }
 
 func (c *MySQLConnection) Configure(Hostname *string, Port *int, Username *string, Password *string, Database *string) error {
-	log.Printf("Starting MySql Connection Configuration with %s:****@%s:%d/%s", *Username, *Hostname, *Port, *Database)
+	if *Hostname == "" || *Port == 0 || *Username == "" || *Database == "" {
+		panic(errors.New("connection informartion is invalid"))
+	}
+	log.Printf("Starting MySql Connection Configuration with [%s:********@%s:%d/%s]", *Username, *Hostname, *Port, *Database)
 	c.Host = *Hostname
 	c.Port = *Port
 	c.Username = *Username

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/Mondongo-cl/http-rest-echo-go/dataaccess"
 	"github.com/Mondongo-cl/http-rest-echo-go/datatypes"
@@ -17,8 +18,13 @@ import (
 )
 
 func handleRequest(ctx context.Context, r events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	p, e := json.Marshal(r)
+	if e != nil {
+		log.Printf("%v payload received ----> %v", time.Now(), string(p))
+	}
 	switch r.HTTPMethod {
 	case "GET":
+
 		data, err := dataaccess.GetAll()
 		if err != nil {
 			panic(err.Error())
@@ -52,6 +58,7 @@ func handleRequest(ctx context.Context, r events.APIGatewayProxyRequest) (events
 
 func main() {
 	s := settings.ConnectionSettings{}
+
 	host := os.Getenv("servername")
 	port, _ := strconv.Atoi(os.Getenv("serverport"))
 	username := os.Getenv("username")
